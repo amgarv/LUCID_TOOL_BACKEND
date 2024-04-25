@@ -65,4 +65,4 @@ def chatgolem():
         return jsonify({'error': 'Failed to get a response from OpenAI API', 'details': response.text}), response.status_code
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(debug=True) 
