@@ -15,10 +15,10 @@ def hello_world():
 
 @app.route('/chatgolem', methods=['POST'])
 @cross_origin(origins='*')
-def chatgolem():    
+def chatgolem():
     # Read the request body
     post_data = request.data
-    
+
     try:
         body = json.loads(post_data.decode('utf-8'))
     except json.JSONDecodeError as e:
@@ -30,6 +30,9 @@ def chatgolem():
     if not openai_api_key:
         print('OpenAI API key not found')
         return jsonify({'error': 'OpenAI API key not found'}), 500
+
+    # Extract the model specification from the incoming JSON, defaulting to 'gpt-3.5-turbo' if not specified
+    model = body.get('model', 'gpt-3.5-turbo')
 
     # Define the URL for the OpenAI API endpoint specifically for chat completions
     openai_url = 'https://api.openai.com/v1/chat/completions'
@@ -45,7 +48,7 @@ def chatgolem():
 
     # Prepare the data for the OpenAI API request to maintain conversation context
     data = {
-        'model': 'gpt-3.5-turbo',
+        'model': model,  # Use the model specified in the request, if any
         'messages': messages  # This directly uses the 'messages' array from the event body
     }
 
