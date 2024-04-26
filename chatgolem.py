@@ -11,7 +11,7 @@ CORS(app)
 @app.route('/')
 @cross_origin()
 def hello_world():
-    return 'Hello, world!'
+    return 'Hello world!'
 
 @app.route('/chatgolem', methods=['POST'])
 @cross_origin(origins='*')
