@@ -157,3 +157,36 @@ footer {
 .citation a:hover {
   text-decoration: underline;
 }
+
+.btn.disabled {
+  background-color: #ccc;
+  color: #666;
+  cursor: not-allowed;
+  pointer-events: none;
+  border: none;
+}
+.btn.disabled i {
+  color: #888;
+}
+
+.description ul {
+  padding-left: 1.2rem;
+  font-size: 1rem;
+  line-height: 1.6;
+}
+
+.description ul li {
+  margin-bottom: 0.5rem;
+}
+
+.template-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  justify-content: center;
+  margin-bottom: 2rem;
+}
+
+.template-actions .btn i {
+  margin-right: 0.5rem;
+}
