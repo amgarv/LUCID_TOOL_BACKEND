@@ -9,6 +9,7 @@ app = Flask(__name__)
 CORS(app) # Consider restricting origins in production later
 
 # --- Basic Logging Setup ---
+# test trigger
 # Logs will go to Vercel's runtime logs
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
