@@ -18,7 +18,7 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(
 @cross_origin() # Add cross_origin here too if needed for health checks from browser
 def hello_world():
     # You can change this message back if needed
-    return 'This is LUCID'
+    return 'This is a LUCID endpoint'
 
 # --- Chatgolem Route ---
 @app.route('/chatgolem', methods=['POST', 'OPTIONS']) # Add 'OPTIONS' to methods list
