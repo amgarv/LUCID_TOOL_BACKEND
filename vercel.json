@@ -11,15 +11,5 @@
         "src": "/(.*)",
         "dest": "chatgolem.py"
       }
-    ],
-    "headers": [
-      {
-        "source": "/chatgolem",
-        "headers": [
-          { "key": "Access-Control-Allow-Origin", "value": "https://uky.pdx1.qualtrics.com" },
-          { "key": "Access-Control-Allow-Methods", "value": "POST, OPTIONS" },
-          { "key": "Access-Control-Allow-Headers", "value": "Content-Type" }
-        ]
-      }
     ]
   }
