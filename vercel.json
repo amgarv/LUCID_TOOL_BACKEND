@@ -2,11 +2,8 @@
     "version": 2,
     "builds": [
       {
-        "src": "api/index.py", // Update path here
+        "src": "api/index.py",
         "use": "@vercel/python"
       }
     ]
-    // "routes" section likely no longer needed and can be removed,
-    // unless you have other specific routing rules unrelated to the API.
-    // Vercel automatically routes /api/index to api/index.py
   }
