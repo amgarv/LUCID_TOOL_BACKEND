@@ -1,15 +1,12 @@
 {
     "version": 2,
     "builds": [
-        {
-            "src": "chatgolem.py",
-            "use": "@vercel/python"
-        }
-    ],
-    "routes": [
-        {
-            "src": "/(.*)",
-            "dest": "chatgolem.py"
-        }
+      {
+        "src": "api/index.py", // Update path here
+        "use": "@vercel/python"
+      }
     ]
-}
+    // "routes" section likely no longer needed and can be removed,
+    // unless you have other specific routing rules unrelated to the API.
+    // Vercel automatically routes /api/index to api/index.py
+  }
