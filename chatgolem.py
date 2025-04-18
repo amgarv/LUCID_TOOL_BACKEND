@@ -1,46 +1,68 @@
-# -*- coding: utf-8 -*-
-# Imports - REMOVED flask_cors
 from flask import Flask, request, jsonify
-import json # Keep for potential future use if needed
-import os # Keep for potential future use if needed
-import requests # Keep for potential future use if needed
-import logging
+from flask_cors import CORS, cross_origin
 
-# App Setup
+import json
+import os
+import requests
+
 app = Flask(__name__)
+CORS(app)
 
-# Basic Logging Setup
-logging.basicConfig(level=logging.INFO,
-                    format='%(asctime)s - %(levelname)s - %(message)s')
-
-# Root Route - No CORS
 @app.route('/')
+@cross_origin()
 def hello_world():
-    # Corrected indentation with standard spaces
     return 'Hello world!'
 
-# Chatgolem Route - Drastically Simplified for Debugging Entry
-@app.route('/chatgolem', methods=['POST']) # Only POST
-# --- NO CORS HANDLING AT ALL ---
+@app.route('/chatgolem', methods=['POST'])
+@cross_origin(origins='*')
 def chatgolem():
-    # *** Entry log - This is the PRIMARY thing we want to see ***
-    logging.info(f"------ Entered chatgolem function with method: {request.method} ------")
+    # Read the request body
+    post_data = request.data
 
-    # --- NO OPTIONS block ---
+    try:
+        body = json.loads(post_data.decode('utf-8'))
+    except json.JSONDecodeError as e:
+        print(f'Error decoding JSON: {e}')
+        return jsonify({'error': 'Invalid request payload'}), 400
 
-    # --- Handle POST request ---
-    # For this specific diagnostic test, immediately log success and return OK.
-    # We are ONLY checking if the request *reaches* this point in the Vercel Preview logs.
-    # The browser WILL still show a CORS error because no Allow-Origin header is sent.
-    logging.info("Simplification Test: Request reached function successfully.")
-    return jsonify({'status': 'simplification_test_received_ok'}), 200
+    # Retrieve the OpenAI API key set as an environment variable
+    openai_api_key = os.getenv('openai_api_key')
+    if not openai_api_key:
+        print('OpenAI API key not found')
+        return jsonify({'error': 'OpenAI API key not found'}), 500
 
-    # --- Original POST logic completely commented out/removed for this entry test ---
+    # Extract the model specification from the incoming JSON, defaulting to 'gpt-3.5-turbo' if not specified
+    model = body.get('model', 'gpt-3.5-turbo')
 
+    # Define the URL for the OpenAI API endpoint specifically for chat completions
+    openai_url = 'https://api.openai.com/v1/chat/completions'
 
-# --- Validation function stub (no longer called in this simplified version) ---
-# def validate_chat_input(data): ...
+    # Ensure the messages structure aligns with OpenAI API requirements
+    messages = body.get('messages', [])
 
-# Main execution block
+    # Set up the headers for the OpenAI API request
+    headers = {
+        'Content-Type': 'application/json',
+        'Authorization': f'Bearer {openai_api_key}'
+    }
+
+    # Prepare the data for the OpenAI API request to maintain conversation context
+    data = {
+        'model': model,  # Use the model specified in the request, if any
+        'messages': messages  # This directly uses the 'messages' array from the event body
+    }
+
+    # Make the request to the OpenAI API
+    response = requests.post(openai_url, headers=headers, json=data)
+
+    if response.status_code == 200:
+        response_data = response.json()
+        # Extract the generated text from the first choice's message content
+        generated_text = response_data['choices'][0]['message']['content']
+        return jsonify({'generated_text': generated_text})
+    else:
+        print(f'Failed to get a response from OpenAI API: {response.text}')
+        return jsonify({'error': 'Failed to get a response from OpenAI API', 'details': response.text}), response.status_code
+
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(debug=True) 
