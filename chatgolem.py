@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, make_response # ADDED make_response
 from flask_cors import CORS, cross_origin
 
 import json
@@ -8,15 +8,54 @@ import requests
 app = Flask(__name__)
 CORS(app)
 
+# --- ADDED: Manual OPTIONS Preflight Handler ---
+@app.before_request
+def handle_preflight():
+    if request.method.upper() == 'OPTIONS' and request.path == '/chatgolem':
+        # This handler will intercept OPTIONS /chatgolem requests
+        origin = request.headers.get('Origin')
+        allowed_origin = None
+        # --- Allow specific Qualtrics origin ---
+        # Replace '*' with this line if you want to be specific:
+        # if origin == 'https://uky.pdx1.qualtrics.com':
+        #      allowed_origin = origin
+        # --- OR allow wildcard (used '*' based on original decorator) ---
+        allowed_origin = '*' # Using '*' as per your original @cross_origin setting
+
+        if allowed_origin:
+            # Manually construct the necessary CORS headers
+            cors_headers = {
+                'Access-Control-Allow-Origin': allowed_origin,
+                'Access-Control-Allow-Methods': 'POST, OPTIONS', # Methods route allows
+                'Access-Control-Allow-Headers': 'Content-Type', # Headers client sends
+                'Access-Control-Max-Age': '86400' # Cache preflight for 1 day
+            }
+            # Send 204 No Content response with the headers
+            # print(f"DEBUG: Sending preflight headers: {cors_headers}") # Optional: temporary print for debugging
+            return make_response('', 204, cors_headers)
+        else:
+            # Origin not allowed by this handler (shouldn't happen with '*')
+            # print(f"DEBUG: Preflight origin {origin} not allowed.") # Optional: temporary print
+            return make_response('Origin not allowed', 403)
+    # If not the specific OPTIONS request, continue normally (Flask handles it)
+
 @app.route('/')
 @cross_origin()
 def hello_world():
     return 'Hello world!'
 
-@app.route('/chatgolem', methods=['POST'])
-@cross_origin(origins='*')
+# Make sure methods includes OPTIONS
+@app.route('/chatgolem', methods=['POST', 'OPTIONS'])
+@cross_origin(origins='*') # Keep original decorator for POST handling consistency
 def chatgolem():
-    # Read the request body here..
+    # ... rest of your original function ...
+    # IMPORTANT: Add a check inside chatgolem if you DON'T want POST logic to run for OPTIONS method
+    if request.method == 'OPTIONS':
+         # This might be reached if before_request doesn't send response,
+         # though it should. Return OK just in case.
+         return jsonify(message="OPTIONS request handled by route"), 200
+
+    # --- Original POST logic starts here ---
     post_data = request.data
 
     try:
