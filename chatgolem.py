@@ -16,7 +16,7 @@ def hello_world():
 @app.route('/chatgolem', methods=['POST'])
 @cross_origin(origins='*')
 def chatgolem():
-    # Read the request body here
+    # Read the request body here..
     post_data = request.data
 
     try:
