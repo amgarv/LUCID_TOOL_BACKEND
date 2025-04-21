@@ -1,15 +1,15 @@
 # -*- coding: utf-8 -*-
 from flask import Flask, request, jsonify, make_response # Keep make_response
-# REMOVE from flask_cors import CORS, cross_origin # No longer needed
+# REMOVE from flask_cors import CORS, cross_origin # Remove Flask-CORS imports
 import json
 import os
 import requests
-import logging # Use logging for server-side info here
+import logging # Use standard logging
 
 app = Flask(__name__)
-# REMOVE CORS(app) # No longer needed
+# REMOVE CORS(app) # Remove global Flask-CORS initialization
 
-# Basic Logging Setup (Configure once globally)
+# Basic Logging Setup
 logging.basicConfig(level=logging.INFO, format='%(asctime)s [%(levelname)s] %(message)s', datefmt='%Y-%m-%d %H:%M:%S')
 
 # Helper function to get allowed origins list OR the wildcard default
@@ -17,11 +17,11 @@ def get_allowed_origins_config():
     # Reads ALLOWED_ORIGINS env var. If not set/empty, defaults to ['*']
     origins_str = os.getenv('ALLOWED_ORIGINS')
     if not origins_str:
-        logging.warning("ALLOWED_ORIGINS environment variable not set. Defaulting CORS policy to allow all origins ('*').")
+        logging.warning("ALLOWED_ORIGINS environment variable not set or empty. Defaulting CORS policy to allow all origins ('*').")
         return ['*'] # Default to Wildcard list
     # Parse comma-separated list
     allowed_list = [origin.strip() for origin in origins_str.split(',') if origin.strip()]
-    logging.info(f"Using ALLOWED_ORIGINS from environment variable: {allowed_list}")
+    logging.info(f"Using specific ALLOWED_ORIGINS: {allowed_list}")
     return allowed_list
 
 # Manual OPTIONS Preflight Handler using Environment Variable or Default
@@ -33,40 +33,43 @@ def handle_preflight():
         origin = request.headers.get('Origin')
         logging.info(f"Request Origin: {origin}")
 
-        allowed_origins = get_allowed_origins_config() # Gets specific list or ['*']
+        # Use the helper function to get configured/default origins
+        allowed_origins = get_allowed_origins_config()
 
         origin_to_send_in_header = None
         allow_credentials_value = 'false' # Default (MUST be false for wildcard)
 
-        # Determine appropriate CORS headers based on config and request
+        # Determine appropriate CORS headers based on config and request origin
         if '*' in allowed_origins: # Check if wildcard is the policy
             origin_to_send_in_header = '*'
-            allow_credentials_value = 'false'
-            logging.info("CORS Policy: Wildcard origin allowed.")
+            allow_credentials_value = 'false' # Credentials cannot be true with wildcard
+            logging.info("CORS Policy Check: Wildcard origin allowed.")
         elif origin and origin in allowed_origins: # Check if specific origin is allowed
             origin_to_send_in_header = origin # Reflect the specific origin
-            allow_credentials_value = 'true' # Can allow credentials for specific origins if needed
-            logging.info(f"CORS Policy: Specific origin {origin} allowed.")
+            allow_credentials_value = 'true' # Credentials can be true for specific origins
+            logging.info(f"CORS Policy Check: Specific origin {origin} allowed.")
+        else:
+             logging.info(f"CORS Policy Check: Origin '{origin}' is not in allowed list: {allowed_origins}")
+             # Keep origin_to_send_in_header = None
 
         # If request origin is allowed (either specific or via wildcard)
         if origin_to_send_in_header:
             cors_headers = {
                 'Access-Control-Allow-Origin': origin_to_send_in_header,
                 'Access-Control-Allow-Methods': 'POST, OPTIONS',
-                'Access-Control-Allow-Headers': 'Content-Type', # Add any other headers client might send
+                'Access-Control-Allow-Headers': 'Content-Type', # Add others if client sends them
                 'Access-Control-Allow-Credentials': allow_credentials_value,
-                'Access-Control-Max-Age': '86400' # Cache preflight for 1 day
+                'Access-Control-Max-Age': '86400'
             }
             logging.info(f"Preflight OK. Sending 204 with headers: {cors_headers}")
-            # Send 204 No Content response with the headers
             return make_response('', 204, cors_headers)
         else:
-            # Only reached if env var is set (specific origins) but request origin doesn't match
-            logging.warning(f"Preflight origin {origin} denied. Not in allowed list: {allowed_origins}")
+            # Origin not allowed by ALLOWED_ORIGINS list or missing Origin header
+            logging.warning(f"Preflight origin '{origin}' denied by policy.")
             return make_response('Origin not permitted for CORS preflight', 403)
     # If it's not this specific OPTIONS request, continue normally
 
-# Root Route - Manual CORS handling added for consistency
+# Root Route - Also uses manual CORS handling now
 @app.route('/')
 # REMOVE @cross_origin()
 def hello_world():
@@ -82,17 +85,17 @@ def hello_world():
          origin_to_send = '*'
     elif origin and origin in allowed_origins:
          origin_to_send = origin
-         allow_credentials = 'true' # Set true only if needed for GET /
+         allow_credentials = 'true'
 
     # Only add CORS headers if origin was allowed by the policy
     if origin_to_send:
         resp.headers['Access-Control-Allow-Origin'] = origin_to_send
-        resp.headers['Vary'] = 'Origin' # Important for caching
+        resp.headers['Vary'] = 'Origin'
         resp.headers['Access-Control-Allow-Credentials'] = allow_credentials
     return resp
 
 # Chatgolem Route - Handles POST, adds manual CORS headers to response
-@app.route('/chatgolem', methods=['POST']) # Only POST needed in route definition
+@app.route('/chatgolem', methods=['POST']) # Only POST needed now
 # REMOVE @cross_origin decorator
 def chatgolem():
     # --- Check Origin header for the actual POST request ---
@@ -105,17 +108,17 @@ def chatgolem():
 
     # Determine if request is allowed based on origin and config
     if '*' in allowed_origins:
-        origin_to_send = '*' # Origin to send back in header
+        origin_to_send = '*' # Origin value for response header
         is_request_allowed = True
         # Credentials MUST be false for wildcard origin
     elif origin and origin in allowed_origins:
-        origin_to_send = origin # Reflect specific origin
+        origin_to_send = origin # Reflect specific origin in response header
         is_request_allowed = True
         allow_credentials = 'true' # Credentials can be true for specific origin
 
-    # Deny if origin not allowed by configuration
+    # Deny if origin not allowed by configuration EARLY
     if not is_request_allowed:
-        logging.warning(f"POST request from disallowed/missing origin: {origin}. Allowed config: {allowed_origins}")
+        logging.warning(f"POST request from disallowed/missing origin: {origin}. Allowed config: {allowed_origins}. Denying with 403.")
         # Don't add CORS headers for forbidden response
         return jsonify({'error': 'Forbidden', 'message': 'Origin not permitted.'}), 403
 
@@ -143,7 +146,6 @@ def chatgolem():
             response_data = {'error': 'OpenAI API key not found'}
             status_code = 500
         else:
-            # ... (rest of OpenAI call logic: check model/messages, call API, handle response/errors) ...
             model = body.get('model', 'gpt-3.5-turbo')
             messages = body.get('messages', [])
             if not messages:
@@ -151,6 +153,7 @@ def chatgolem():
                  response_data = {'error': 'Invalid input', 'message': 'Messages list cannot be empty.'}
                  status_code = 400
             else:
+                # ---- OpenAI Call Logic ----
                 openai_url = 'https://api.openai.com/v1/chat/completions'
                 headers = { 'Content-Type': 'application/json', 'Authorization': f'Bearer {openai_api_key}' }
                 data_payload = {'model': model, 'messages': messages}
@@ -162,7 +165,6 @@ def chatgolem():
                 if openai_status == 200:
                     logging.info("OpenAI call successful (Status 200).")
                     resp_json = response_openai.json()
-                    # Added safer checks for response structure
                     if resp_json.get('choices') and len(resp_json['choices']) > 0 and resp_json['choices'][0].get('message') and 'content' in resp_json['choices'][0]['message']:
                          generated_text = resp_json['choices'][0]['message']['content']
                          response_data = {'generated_text': generated_text}
@@ -176,6 +178,7 @@ def chatgolem():
                     logging.error(f"DIAGNOSTIC: OpenAI Response Body: {openai_response_text}")
                     response_data = {'error': f'Failed OpenAI Call ({openai_status})', 'details': openai_response_text}
                     status_code = openai_status # Return actual error code
+                # ---- End OpenAI Call Logic ----
 
     # Handle exceptions during POST processing
     except requests.exceptions.Timeout:
