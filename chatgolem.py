@@ -4,7 +4,7 @@ from flask import Flask, request, jsonify, make_response # Keep make_response
 import json
 import os
 import requests
-import logging # Use logging for server-side info
+import logging # Use logging for server-side info here
 
 app = Flask(__name__)
 # REMOVE CORS(app) # No longer needed
