@@ -179,10 +179,51 @@ def chatgolem():
                  response_data = {'error': 'Invalid input', 'message': 'Messages list cannot be empty.'}
                  status_code = 400
             else:
+                # ---- Parameter Handling Logic ----
+                # Get temperature from frontend payload, default to 1.0 if not provided/invalid
+                temp_from_frontend = body.get('temperature')
+                used_temperature = 1.0 # Default
+                if temp_from_frontend is not None:
+                    try:
+                        # Attempt conversion, keep default if invalid format
+                        parsed_temp = float(temp_from_frontend)
+                        # Basic validation for typical range (optional but good practice)
+                        if 0.0 <= parsed_temp <= 2.0:
+                            used_temperature = parsed_temp
+                            print(f"INFO: Using temperature provided by frontend: {used_temperature}") # Replaced logging.info
+                        else:
+                            print(f"WARNING: Temperature value '{parsed_temp}' out of typical range (0.0-2.0), using default: {used_temperature}") # Replaced logging.warning
+                    except (ValueError, TypeError):
+                        print(f"WARNING: Invalid temperature format received ('{temp_from_frontend}'), using default: {used_temperature}") # Replaced logging.warning
+                else:
+                    print(f"INFO: No temperature provided by frontend, using default: {used_temperature}") # Replaced logging.info
+
+
+                # Get seed from frontend payload, keep as None if not provided/invalid
+                seed_from_frontend = body.get('seed')
+                used_seed = None # Default
+                if seed_from_frontend is not None:
+                    try:
+                        # Attempt conversion, keep default (None) if invalid format
+                        parsed_seed = int(seed_from_frontend)
+                        used_seed = parsed_seed
+                        print(f"INFO: Using seed provided by frontend: {used_seed}") # Replaced logging.info
+                    except (ValueError, TypeError):
+                        print(f"WARNING: Invalid seed format received ('{seed_from_frontend}'), using default (None)") # Replaced logging.warning
+                else:
+                    print(f"INFO: No seed provided by frontend.") # Replaced logging.info
+                # ---- End Parameter Handling Logic ----
                 # ---- OpenAI Call Logic ----
                 openai_url = 'https://api.openai.com/v1/chat/completions'
                 headers = { 'Content-Type': 'application/json', 'Authorization': f'Bearer {openai_api_key}' }
-                data_payload = {'model': model, 'messages': messages}
+                # ** MODIFIED: Prepare payload with new parameters **
+                data_payload = {
+                    'model': model,
+                    'messages': messages,
+                    'temperature': used_temperature # Always include temperature now
+                }
+                if used_seed is not None:
+                    data_payload['seed'] = used_seed # Conditionally include seed if it was provided
                 print(f"INFO: Attempting requests.post to OpenAI API (model: {model})...") # Replaced logging.info
                 response_openai = requests.post(openai_url, headers=headers, json=data_payload, timeout=30) # Keep timeout
                 openai_status = response_openai.status_code
@@ -193,7 +234,16 @@ def chatgolem():
                     resp_json = response_openai.json()
                     if resp_json.get('choices') and len(resp_json['choices']) > 0 and resp_json['choices'][0].get('message') and 'content' in resp_json['choices'][0]['message']:
                          generated_text = resp_json['choices'][0]['message']['content']
-                         response_data = {'generated_text': generated_text}
+                         # ** MODIFIED: Prepare response payload including used parameters **
+                         response_data = {
+                             'generated_text': generated_text,
+                             'used_temperature': used_temperature # Always include the temperature used
+                         }
+                         if used_seed is not None:
+                             # You could potentially try to get seed from resp_json if OpenAI returns it reliably,
+                             # but for now, we return the seed we intended to use.
+                             response_data['used_seed'] = used_seed # Include seed only if one was sent
+
                          status_code = 200
                     else:
                          print(f"ERROR: OpenAI response format unexpected: {resp_json}") # Replaced logging.error
