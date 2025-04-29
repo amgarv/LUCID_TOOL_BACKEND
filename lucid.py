@@ -21,7 +21,7 @@ def get_allowed_origins_config():
     """
     Reads the ALLOWED_ORIGINS environment variable and parses it into a list.
     Defaults to allowing all origins ('*') if the variable is not set.
-    Uses print for logging, visible in Vercel Function Logs.
+    Uses print for logging and visible in Vercel Function Logs.
     """
     origins_str = os.getenv('ALLOWED_ORIGINS')
     print(f"[DEBUG ENV] Raw ALLOWED_ORIGINS: '{origins_str}'") # Vercel Log
