@@ -11,9 +11,9 @@ Click the button below to deploy your own instance of this backend service to Ve
 ## Deployment Steps (Using the Deploy Button)
 
 1.  **Click the "Deploy with Vercel" button** above.
-2.  **Connect Git Provider:** When prompted, connect your GitHub account. Vercel will create a copy of the LUCID code from the repository into your account.
+2.  **Connect Git Provider:** When prompted, connect your GitHub account and click "Import". Vercel will create a copy of the LUCID code from the repository into your account.
 3.  **Configure Project:**
-    * Vercel will suggest a **Project Name**. You can keep it or change it (e.g., `lucid-backend`). This name determines your default deployment URL (e.g., `lucid-backend.vercel.app`).
+    * Vercel will suggest a **Project Name**. You can keep it or change it (e.g., `lucid-tool-backend`). This name will determine your default backend deployment URL that will be used by Qualtrics, so use a name you are comfortable with others (such a reviewers) potentially seeing.
 4.  **Set Environment Variables:** This is crucial. Vercel will prompt you for:
     * **`openai_api_key`**:
         * **Purpose:** Allows LUCID to access OpenAI ChatGPT models.
