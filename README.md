@@ -35,7 +35,7 @@ Click the button below to deploy your own instance of this backend service to Ve
 
 1.  Take the full URL you copied from your deployment's landing page (e.g., `https://your-project-name.vercel.app/lucid`).
 2.  In your Qualtrics survey, go to the **Survey Flow**.
-3.  Set the value of the Embedded Data field named `LUCIDURL` exactly to the URL you copied.
+3.  Set the value of the Embedded Data field named `LUCIDBackendURL` exactly to the URL you copied.
 
 Your Qualtrics tool should now be able to communicate with your deployed LUCID backend.
 
