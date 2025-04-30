@@ -164,7 +164,6 @@ def hello_world():
         .copied-message {{ color: #198754; font-weight: bold; display: none; margin-left: 10px;}}
         .important {{ background-color: #fff3cd; border: 1px solid #ffeeba; color: #664d03; padding: 15px 20px; border-radius: 5px; margin-top: 20px; }}
         .important code {{ background-color: #fde7a0; color: #664d03; }}
-        /* Removed .info style as the div using it was removed */
         ul {{ margin-top: 10px; padding-left: 20px; }} li {{ margin-bottom: 5px; }}
         p {{ margin-bottom: 1rem; }}
     </style>
@@ -172,7 +171,7 @@ def hello_world():
     <body><div class="container">
         <h1>LUCID Backend Successfully Deployed!</h1>
 
-        <h2>Step 1: Configure Qualtrics</h2>
+        <h2>Next Step: Configure Qualtrics</h2>
         <p>To connect your Qualtrics survey to this backend:</p>
         <ol>
             <li><strong>Copy the full Backend URL below.</strong> This URL should reflect the main production domain when accessed via production. Use this URL for the <code>LUCIDBackendURL</code> Embedded Data field in Qualtrics.</li>
@@ -182,16 +181,6 @@ def hello_world():
         <div id="qualtricsUrlBox" class="url-box">{backend_url_for_qualtrics}</div>
         <button onclick="copyUrl()">Copy Backend URL</button>
         <span id="copiedMsg" class="copied-message">Copied!</span>
-            <h2>Step 2: Configure CORS Security (Environment Variable)</h2>
-        <p>For security, this backend can use CORS security to control which websites can access it. Configure this via the <code>ALLOWED_ORIGINS</code> environment variable in your Vercel project settings.</p>
-        <div>
-            <p>The <code>ALLOWED_ORIGINS</code> variable allows you to control which **origin domain(s)** can run LUCID surveys on your LUCID backend (e.g., <code>https://yourbrand.qualtrics.com</code>), this is a level of added security to make sure only you can run studies using your deployed LUCID backend.</p>
-            <ul>
-                <li>For ease of use, enter <code>*</code> to allow any origin. This is the easier for set up and less likely to cause issues, however anyone could potentially use your backend to run studies.</li>
-                <li>For tight security, enter your exact University Qualtrics origin(s) domains, comma-separated (e.g., <code>https://myuniversity.qualtrics.com,https://mycoauthoruniversity.qualtrics.com</code>). If the domain names are entered incorrectly, this could cause some headaches running studies.</li>
-            </ul>
-        </div>
-
     </div>
     <script>function copyUrl() {{ const urlText = document.getElementById('qualtricsUrlBox').innerText; navigator.clipboard.writeText(urlText).then(() => {{ const msg = document.getElementById('copiedMsg'); msg.style.display = 'inline'; setTimeout(() => {{ msg.style.display = 'none'; }}, 2500); }}).catch(err => {{ console.error('Failed to copy: ', err); alert('Failed to copy URL.'); }}); }}</script>
     </body></html>
