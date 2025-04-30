@@ -138,8 +138,8 @@ def hello_world():
         print(f"[ERROR URL] Failed to derive URL from request.url_root: {e}")
 
     # --- Format the displayed allowed origins ---
-    # (Ensure allowed_origins_list is defined earlier in the function)
-    escaped_origins_list = [html.escape(o) for o in allowed_origins_list]
+    # (Ensure allowed_origins is defined earlier in the function)
+    escaped_origins_list = [html.escape(o) for o in allowed_origins]
     if escaped_origins_list == ['*']:
         allowed_origins_display = "<code>*</code> (Any origin - less secure)"
     else:
