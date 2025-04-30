@@ -11,6 +11,7 @@ from flask import Flask, request, jsonify, make_response
 import json
 import os      # Used for accessing environment variables (API keys, config)
 import requests # Used for making HTTP requests to the OpenAI API
+import html
 
 # Initialize the Flask application
 app = Flask(__name__)
@@ -122,24 +123,82 @@ def hello_world():
     allowed_origins = get_allowed_origins_config()
 
     # Attempt to get the Vercel deployment URL from environment variables
-    deployment_url = os.getenv('VERCEL_URL')
-    display_html = "" # Initialize HTML content
+    # --- Determine the correct backend URL using the incoming request context ---
+    backend_url_for_qualtrics = "[Error determining backend URL from request]" # Default/fallback
+    backend_url_base = "Unknown"
+    try:
+        # request.url_root gives "scheme://host:port/" - reflects how user accessed page
+        # Strip the trailing '/' and append our specific endpoint path.
+        backend_url_base = request.url_root.rstrip('/')
+        backend_url_for_qualtrics = f"{backend_url_base}/lucid"
+        backend_url_for_qualtrics = html.escape(backend_url_for_qualtrics) # Escape for safety
+        print(f"[DEBUG URL] Derived base from request.url_root: {backend_url_base}")
+        print(f"[DEBUG URL] Constructed Backend URL for Qualtrics: {backend_url_for_qualtrics}")
+    except Exception as e:
+        print(f"[ERROR URL] Failed to derive URL from request.url_root: {e}")
 
-    if deployment_url:
-        # If running on Vercel, construct the help page
-        # Ensure protocol is included and append the correct endpoint path
-        qualtrics_url = f"https://{deployment_url}/lucid" if not deployment_url.startswith("http") else f"{deployment_url}/lucid"
-
-        # Simple HTML page with instructions and a copy button
-        display_html = f"""
-        <!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>LUCID Backend Deployed</title>
-        <style>body {{ font-family: system-ui, sans-serif; padding: 20px; line-height: 1.6; background-color: #fafafa; color: #333; }}.container {{ max-width: 700px; margin: 40px auto; padding: 30px; border: 1px solid #eaeaea; border-radius: 8px; background-color: #ffffff; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }}h1 {{ color: #0070f3; }}code {{ background-color: #f0f0f0; padding: 0.2em 0.4em; border-radius: 3px; font-family: monospace;}}.url-box {{ background-color: #f3f3f3; padding: 10px 15px; border: 1px solid #ddd; border-radius: 4px; font-family: monospace; word-wrap: break-word; margin-bottom: 15px; font-size: 1.1em;}}button {{ padding: 10px 18px; cursor: pointer; border-radius: 5px; border: none; background-color: #0070f3; color: white; font-size: 15px; }}button:hover {{ background-color: #0056b3; }}.copied-message {{ color: green; font-weight: bold; display: none; margin-left: 10px;}}</style>
-        </head><body><div class="container"><h1>LUCID Backend Successfully Deployed!</h1><p>To use this backend with your Qualtrics survey:</p><ol><li><strong>Copy the full URL below.</strong></li><li>In your Qualtrics Survey Flow, set the Embedded Data field named <code>LUCIDBackendURL</code> to this value.</li></ol><p><strong>Qualtrics URL (Value for <code>LUCIDBackendURL</code>):</strong></p><div id="qualtricsUrlBox" class="url-box">{qualtrics_url}</div><button onclick="copyUrl()">Copy URL</button><span id="copiedMsg" class="copied-message">Copied!</span></div>
-        <script>function copyUrl() {{ const urlText = document.getElementById('qualtricsUrlBox').innerText; navigator.clipboard.writeText(urlText).then(() => {{ const msg = document.getElementById('copiedMsg'); msg.style.display = 'inline'; setTimeout(() => {{ msg.style.display = 'none'; }}, 2500); }}).catch(err => {{ console.error('Failed to copy: ', err); alert('Failed to copy URL.'); }}); }}</script>
-        </body></html>"""
+    # --- Format the displayed allowed origins ---
+    # (Ensure allowed_origins_list is defined earlier in the function)
+    escaped_origins_list = [html.escape(o) for o in allowed_origins_list]
+    if escaped_origins_list == ['*']:
+        allowed_origins_display = "<code>*</code> (Any origin - less secure)"
     else:
-        # Fallback HTML if not running on Vercel (e.g., local development)
-        display_html = """<!DOCTYPE html><html lang="en"><head><title>LUCID Backend</title><style>body{font-family: sans-serif; padding: 20px;}</style></head><body><h1>LUCID Backend Running</h1><p>This is the backend server for the LUCID Qualtrics tool.</p><p><em>(Could not detect Vercel deployment URL. Append /lucid to your deployment URL for Qualtrics.)</em></p></body></html>"""
+        allowed_origins_display = ", ".join(f"<code>{o}</code>" for o in escaped_origins_list)
+        if not allowed_origins_display:
+             allowed_origins_display = "<i>None specified (CORS likely misconfigured/denied)</i>"
+
+    # --- Generate Simplified HTML Page ---
+    # Uses only: backend_url_for_qualtrics, allowed_origins_display
+    display_html = f"""
+    <!DOCTYPE html><html lang="en">
+    <head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>LUCID Backend Deployed</title>
+    <style>
+        body {{ font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif; padding: 20px; line-height: 1.6; background-color: #f8f9fa; color: #212529; }}
+        .container {{ max-width: 750px; margin: 40px auto; padding: 35px; border: 1px solid #dee2e6; border-radius: 8px; background-color: #ffffff; box-shadow: 0 4px 8px rgba(0,0,0,0.05); }}
+        h1 {{ color: #0d6efd; border-bottom: 2px solid #0d6efd; padding-bottom: 10px; margin-bottom: 20px; }}
+        h2 {{ color: #495057; margin-top: 30px; border-bottom: 1px solid #ced4da; padding-bottom: 8px;}}
+        code {{ background-color: #e9ecef; padding: 0.2em 0.5em; border-radius: 4px; font-family: "SFMono-Regular", Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; font-size: 0.9em; color: #d63384;}}
+        .url-box {{ background-color: #f1f3f5; padding: 12px 18px; border: 1px solid #adb5bd; border-radius: 5px; font-family: "SFMono-Regular", Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; word-wrap: break-word; margin-bottom: 15px; font-size: 1.05em; color: #0b5ed7; }}
+        button {{ padding: 10px 18px; cursor: pointer; border-radius: 5px; border: none; background-color: #0d6efd; color: white; font-size: 15px; transition: background-color 0.2s ease; }}
+        button:hover {{ background-color: #0b5ed7; }}
+        .copied-message {{ color: #198754; font-weight: bold; display: none; margin-left: 10px;}}
+        .important {{ background-color: #fff3cd; border: 1px solid #ffeeba; color: #664d03; padding: 15px 20px; border-radius: 5px; margin-top: 20px; }}
+        .important code {{ background-color: #fde7a0; color: #664d03; }}
+        /* Removed .info style as the div using it was removed */
+        ul {{ margin-top: 10px; padding-left: 20px; }} li {{ margin-bottom: 5px; }}
+        p {{ margin-bottom: 1rem; }}
+    </style>
+    </head>
+    <body><div class="container">
+        <h1>LUCID Backend Successfully Deployed!</h1>
+
+        <h2>Step 1: Configure Qualtrics</h2>
+        <p>To connect your Qualtrics survey to this backend:</p>
+        <ol>
+            <li><strong>Copy the full Backend URL below.</strong> This URL should reflect the main production domain when accessed via production. Use this URL for the <code>LUCIDBackendURL</code> Embedded Data field in Qualtrics.</li>
+            <li>In your Qualtrics Survey Flow, create or update the Embedded Data field named <code>LUCIDBackendURL</code> and paste this URL as its value.</li>
+        </ol>
+        <p><strong>Backend URL (Value for <code>LUCIDBackendURL</code>):</strong></p>
+        <div id="qualtricsUrlBox" class="url-box"></div>
+        <button onclick="copyUrl()">Copy Backend URL</button>
+        <span id="copiedMsg" class="copied-message">Copied!</span>
+            <h2>Step 2: Configure CORS Security (Environment Variable)</h2>
+        <p>For security, this backend can use CORS security to control which websites can access it. Configure this via the <code>ALLOWED_ORIGINS</code> environment variable in your Vercel project settings.</p>
+        <div class="important">
+            <p>The <code>ALLOWED_ORIGINS</code> variable allows you to control which **origin domain(s)** can run LUCID surveys on your LUCID backend (e.g., <code>https://yourbrand.qualtrics.com</code>), this is a level of added security to make sure only you can run studies using your deployed LUCID backend.</p>
+            <ul>
+                <li>For ease of use, enter <code>*</code> to allow any origin. This is the easier for set up and less likely to cause issues, however anyone could potentially use your backend to run studies.</li>
+                <li>For tight security, enter your exact University Qualtrics origin(s) domains, comma-separated (e.g., <code>https://myuniversity.qualtrics.com,https://mycoauthoruniversity.qualtrics.com</code>). If the domain names are entered incorrectly, this could cause some headaches running studies.</li>
+            </ul>
+            <p style="margin-top:15px;"><strong>Current CORS Configuration Detected:</strong></p>
+            <p>This backend deployment is currently configured via <code>ALLOWED_ORIGINS</code> to allow requests from: {allowed_origins_display}</p>
+            <p style="margin-top:10px;"><em>Ensure this matches the actual origin(s) required by Qualtrics (check browser console errors if needed). Remember to redeploy after changing environment variables.</em></p>
+        </div>
+
+    </div>
+    <script>function copyUrl() {{ const urlText = document.getElementById('qualtricsUrlBox').innerText; navigator.clipboard.writeText(urlText).then(() => {{ const msg = document.getElementById('copiedMsg'); msg.style.display = 'inline'; setTimeout(() => {{ msg.style.display = 'none'; }}, 2500); }}).catch(err => {{ console.error('Failed to copy: ', err); alert('Failed to copy URL.'); }}); }}</script>
+    </body></html>
+    """
 
     # Create Flask response object with the HTML
     resp = make_response(display_html)
