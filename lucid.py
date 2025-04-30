@@ -179,20 +179,17 @@ def hello_world():
             <li>In your Qualtrics Survey Flow, create or update the Embedded Data field named <code>LUCIDBackendURL</code> and paste this URL as its value.</li>
         </ol>
         <p><strong>Backend URL (Value for <code>LUCIDBackendURL</code>):</strong></p>
-        <div id="qualtricsUrlBox" class="url-box"></div>
+        <div id="qualtricsUrlBox" class="url-box">{backend_url_for_qualtrics}</div>
         <button onclick="copyUrl()">Copy Backend URL</button>
         <span id="copiedMsg" class="copied-message">Copied!</span>
             <h2>Step 2: Configure CORS Security (Environment Variable)</h2>
         <p>For security, this backend can use CORS security to control which websites can access it. Configure this via the <code>ALLOWED_ORIGINS</code> environment variable in your Vercel project settings.</p>
-        <div class="important">
+        <div>
             <p>The <code>ALLOWED_ORIGINS</code> variable allows you to control which **origin domain(s)** can run LUCID surveys on your LUCID backend (e.g., <code>https://yourbrand.qualtrics.com</code>), this is a level of added security to make sure only you can run studies using your deployed LUCID backend.</p>
             <ul>
                 <li>For ease of use, enter <code>*</code> to allow any origin. This is the easier for set up and less likely to cause issues, however anyone could potentially use your backend to run studies.</li>
                 <li>For tight security, enter your exact University Qualtrics origin(s) domains, comma-separated (e.g., <code>https://myuniversity.qualtrics.com,https://mycoauthoruniversity.qualtrics.com</code>). If the domain names are entered incorrectly, this could cause some headaches running studies.</li>
             </ul>
-            <p style="margin-top:15px;"><strong>Current CORS Configuration Detected:</strong></p>
-            <p>This backend deployment is currently configured via <code>ALLOWED_ORIGINS</code> to allow requests from: {allowed_origins_display}</p>
-            <p style="margin-top:10px;"><em>Ensure this matches the actual origin(s) required by Qualtrics (check browser console errors if needed). Remember to redeploy after changing environment variables.</em></p>
         </div>
 
     </div>
