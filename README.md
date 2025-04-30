@@ -2,6 +2,8 @@
 
 This repository contains the Python Flask backend server required for the LUCID GPT Qualtrics chat interface toolkit. It acts as a proxy to the OpenAI API, enabling researchers to conduct human-AI interaction studies within Qualtrics.
 
+For more detailed information, download the LUCIDToolkitUserGuide.docx available in this repository.
+
 ## Quick Deploy to Vercel
 
 Click the button below to deploy your own instance of this backend service to Vercel. This provides the necessary API endpoint for your Qualtrics tool.
