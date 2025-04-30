@@ -5,6 +5,7 @@ This repository contains the Python Flask backend server required for the LUCID 
 [Download the LUCID User Guide (.docx)](https://github.com/amgarv/LUCID_TOOL_BACKEND/raw/main/LUCIDToolkitUserGuide.docx)
 
 Academic Citation for the LUCID Toolkit:
+
 Garvey, Aaron M. and Simon J. Blanchard, (2025) “Generative AI as a Research Confederate: The “LUCID” Methodological Framework and Toolkit for Controlled Human-AI Interactions Research in Marketing,” Working Manuscript.
 
 ## Quick Deploy to Vercel
