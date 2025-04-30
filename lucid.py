@@ -42,9 +42,12 @@ def handle_preflight():
     Handles CORS preflight (OPTIONS) requests specifically for the /lucid endpoint.
     Checks the request's Origin header against the ALLOWED_ORIGINS config
     and returns appropriate CORS headers if allowed, or a 403 if denied.
+    Echoes back requested headers. Only adds 'Access-Control-Allow-Credentials'
+    when needed and with the value 'true'.
     """
     # Intercept only OPTIONS requests targetting the main API endpoint
-    if request.method.upper() == 'OPTIONS' and request.path == '/lucid':
+    # UPDATED: Changed request.method.upper() == 'OPTIONS' to request.method == 'OPTIONS' (Flask normalizes it)
+    if request.method == 'OPTIONS' and request.path == '/lucid':
         print(f"[INFO] Intercepting OPTIONS request for {request.path}") # Vercel Log
         origin = request.headers.get('Origin') # Get the origin of the requesting domain
         allowed_origins = get_allowed_origins_config() # Fetch the configured allowed origins
@@ -52,45 +55,54 @@ def handle_preflight():
         print(f"[DEBUG PREFLIGHT] Request Origin: '{origin}'") # Vercel Log
         print(f"[DEBUG PREFLIGHT] Checking against Allowed: {allowed_origins}") # Vercel Log
 
-        origin_to_send_in_header = None # The value for Access-Control-Allow-Origin
-        allow_credentials_value = 'false' # Whether credentials (cookies) are allowed
-        policy_applied = "Denied" # For logging
+        ac_allow_origin = None # Initialize
+        send_credentials = False # Initialize
 
-        # Determine CORS policy based on configuration
+        # ---- decide origin & credentials ------------------------
         if '*' in allowed_origins:
-            # Allow any origin (wildcard)
-            origin_to_send_in_header = '*'
-            allow_credentials_value = 'false' # Credentials cannot be used with wildcard origin
-            policy_applied = "Allowed Wildcard (*)"
-            print("[DEBUG PREFLIGHT] Policy: Allowed Wildcard (*)") # Vercel Log
-        elif origin and origin in allowed_origins:
-            # Allow specific origin from the list
-            origin_to_send_in_header = origin # Reflect the requesting origin
-            allow_credentials_value = 'true'  # Allow credentials for specific origins
-            policy_applied = f"Allowed Specific Origin ({origin})"
-            print(f"[DEBUG PREFLIGHT] Policy: Allowed Specific Origin ({origin})") # Vercel Log
+            ac_allow_origin = '*'
+            send_credentials = False        # wildcard ⇒ no creds
+            print("[DEBUG PREFLIGHT] Policy: Allowed Wildcard (*), Credentials False") # Vercel Log
+        elif origin and origin in allowed_origins: # Added check for origin existence
+            ac_allow_origin = origin
+            send_credentials = True
+            print(f"[DEBUG PREFLIGHT] Policy: Allowed Specific Origin ({origin}), Credentials True") # Vercel Log
         else:
             # Origin not allowed by configuration
-            print(f"[DEBUG PREFLIGHT] Policy: Denied Origin ({origin})") # Vercel Log
-
-        print(f"[DEBUG PREFLIGHT] Final policy decision: {policy_applied}") # Vercel Log
-
-        # Construct and return the preflight response
-        if origin_to_send_in_header:
-            # If allowed, send 204 No Content with appropriate CORS headers
-            cors_headers = {
-                'Access-Control-Allow-Origin': origin_to_send_in_header,
-                'Access-Control-Allow-Methods': 'POST, OPTIONS', # Allowed methods for the actual request
-                'Access-Control-Allow-Headers': 'Content-Type',   # Allowed headers for the actual request
-                'Access-Control-Allow-Credentials': allow_credentials_value,
-                'Access-Control-Max-Age': '86400' # Cache preflight response for 1 day
-            }
-            print(f"[INFO] Preflight OK for /lucid. Sending 204 with headers: {cors_headers}") # Vercel Log
-            return make_response('', 204, cors_headers)
-        else:
-            # If denied, send 403 Forbidden
             print(f"[WARN] Preflight origin '{origin}' denied by policy for /lucid.") # Vercel Log
             return make_response('Origin not permitted for CORS preflight', 403)
+
+        # ---- echo back ALL requested headers --------------------
+        # Retrieve the headers the browser wants to send in the actual request
+        req_hdrs = request.headers.get(
+            'Access-Control-Request-Headers', ''
+        )  # e.g. "X-Requested-With,Content-Type" or just "Content-Type" etc.
+        print(f"[DEBUG PREFLIGHT] Access-Control-Request-Headers received: '{req_hdrs}'") # Vercel Log
+
+        # Construct the response for the preflight request (204 No Content)
+        res = make_response('', 204)
+
+        # Build the core CORS headers
+        cors_headers = {
+            'Access-Control-Allow-Origin': ac_allow_origin,
+            'Access-Control-Allow-Methods': 'POST, OPTIONS', # Allowed methods for the actual request
+            # Allow the headers the browser requested, default to Content-Type if none specified
+            'Access-Control-Allow-Headers': req_hdrs if req_hdrs else 'Content-Type',
+            'Access-Control-Max-Age': '86400' # Cache preflight response for 1 day
+        }
+
+        # --- Add Allow-Credentials header ONLY if needed and with value 'true' ---
+        if send_credentials:
+            cors_headers['Access-Control-Allow-Credentials'] = 'true'
+            print("[DEBUG PREFLIGHT] Adding Access-Control-Allow-Credentials: true") # Vercel Log
+        else:
+             print("[DEBUG PREFLIGHT] Not adding Access-Control-Allow-Credentials header") # Vercel Log
+
+        # Update response headers
+        res.headers.update(cors_headers)
+
+        print(f"[INFO] Preflight OK for /lucid. Sending 204 with headers: {dict(res.headers)}") # Vercel Log
+        return res
 
     # If not an OPTIONS request for /lucid, proceed to the actual route function
     pass
@@ -133,18 +145,20 @@ def hello_world():
     resp = make_response(display_html)
     resp.headers['Content-Type'] = 'text/html' # Set correct MIME type
 
-    # Apply basic CORS headers for the root route as well
+    # Apply basic CORS headers for the root route as well (GET requests usually simpler)
     origin_to_send = None
-    allow_credentials = 'false'
+    send_credentials_get = False # Renamed variable to avoid conflict
     if '*' in allowed_origins:
         origin_to_send = '*'
     elif origin and origin in allowed_origins:
         origin_to_send = origin
-        allow_credentials = 'true' # Credentials generally not needed for root, but consistent
+        send_credentials_get = True # Allow credentials if specific origin matches
     if origin_to_send:
         resp.headers['Access-Control-Allow-Origin'] = origin_to_send
         resp.headers['Vary'] = 'Origin'
-        resp.headers['Access-Control-Allow-Credentials'] = allow_credentials
+        # Only add credentials header if needed and true
+        if send_credentials_get:
+            resp.headers['Access-Control-Allow-Credentials'] = 'true'
     return resp
 
 @app.route('/lucid', methods=['POST'])
@@ -155,7 +169,8 @@ def lucid():
     Validates request origin using CORS settings.
     Calls the OpenAI Chat Completions API.
     Returns the AI's response or an error message in JSON format.
-    Includes necessary CORS headers on the response.
+    Includes necessary CORS headers on the response, including 'Access-Control-Allow-Credentials'
+    only when appropriate and with the value 'true'.
     """
     # --- Step 1: CORS Check for POST request ---
     origin = request.headers.get('Origin')
@@ -163,20 +178,21 @@ def lucid():
     print(f"[DEBUG POST /lucid] Request Origin: '{origin}' vs Allowed: {allowed_origins}") # Vercel Log
 
     origin_to_send = None # Header value for Access-Control-Allow-Origin
-    allow_credentials = 'false' # Header value for Access-Control-Allow-Credentials
+    # 'allow_credentials_post' will determine if the 'Access-Control-Allow-Credentials' header is sent
+    allow_credentials_post = False # Default to false, set true only for specific allowed origins
     is_request_allowed = False # Flag to track if request passes CORS check
 
     # Determine if the request origin is permitted
     if '*' in allowed_origins:
         origin_to_send = '*'
         is_request_allowed = True
-        allow_credentials = 'false'
-        print("[DEBUG POST /lucid] Policy: Allowed Wildcard (*)") # Vercel Log
+        allow_credentials_post = False # Cannot use credentials with wildcard
+        print("[DEBUG POST /lucid] Policy: Allowed Wildcard (*), Credentials False") # Vercel Log
     elif origin and origin in allowed_origins:
         origin_to_send = origin
         is_request_allowed = True
-        allow_credentials = 'true'
-        print(f"[DEBUG POST /lucid] Policy: Allowed Specific Origin ({origin})") # Vercel Log
+        allow_credentials_post = True # Allow credentials for specific origins
+        print(f"[DEBUG POST /lucid] Policy: Allowed Specific Origin ({origin}), Credentials True") # Vercel Log
     else:
         # Origin is not in the allowed list (and not wildcard)
         is_request_allowed = False
@@ -190,7 +206,9 @@ def lucid():
         if origin_to_send:
              error_resp.headers['Access-Control-Allow-Origin'] = origin_to_send
              error_resp.headers['Vary'] = 'Origin'
-             error_resp.headers['Access-Control-Allow-Credentials'] = allow_credentials
+             # Only add credentials header if needed and true
+             if allow_credentials_post:
+                 error_resp.headers['Access-Control-Allow-Credentials'] = 'true'
         return error_resp
     # --- End CORS Check ---
 
@@ -206,18 +224,22 @@ def lucid():
         # Decode body as UTF-8 and parse JSON
         body = json.loads(post_data.decode('utf-8'))
 
-        # Retrieve OpenAI API key from environment variables
-        openai_api_key = os.getenv('openai_api_key')
+        # --- Step 3: Get and Check for API Key ---
+        # UPDATED: Check for both uppercase and lowercase env var names
+        openai_api_key = (
+            os.getenv('OPENAI_API_KEY') or  # Vercel / production (Screaming Snake Case)
+            os.getenv('openai_api_key')     # legacy/local (lower snake case)
+        )
 
         # Basic check/log for the API key (without exposing the key itself)
         if isinstance(openai_api_key, str) and len(openai_api_key) > 7:
             print(f"[DIAGNOSTIC /lucid] API Key Found (Length: {len(openai_api_key)}).") # Vercel Log
         elif not openai_api_key:
-            print("[CRITICAL DIAGNOSTIC /lucid] os.getenv('openai_api_key') returned None or empty!") # Vercel Log
+            print("[CRITICAL DIAGNOSTIC /lucid] Neither os.getenv('OPENAI_API_KEY') nor os.getenv('openai_api_key') returned a value!") # Vercel Log
 
-        # --- Step 3: Check for API Key ---
+        # --- Check if API Key is actually present ---
         if not openai_api_key:
-            print('[CRITICAL /lucid] OpenAI API key not found in environment variables.') # Vercel Log
+            print('[CRITICAL /lucid] OpenAI API key not found in environment variables (checked OPENAI_API_KEY and openai_api_key).') # Vercel Log
             # Set error response if key is missing
             response_data = {'error': 'Configuration Error', 'message':'OpenAI API key not configured on server.'}
             status_code = 500 # Indicate server configuration error
@@ -333,8 +355,10 @@ def lucid():
         status_code = 400 # Bad Request
     except Exception as e:
         # Catch-all for any other unexpected errors
-        print(f"[ERROR /lucid] Unexpected server error: {e}") # Vercel Log
+        print(f"[ERROR /lucid] Unexpected server error: {e.__class__.__name__}: {e}") # Vercel Log
         # Consider logging the full traceback here if possible in production
+        import traceback
+        traceback.print_exc() # Print traceback to logs
         response_data = {'error': 'Internal Server Error', 'message': f'An unexpected error occurred processing the request.'}
         status_code = 500
 
@@ -344,7 +368,15 @@ def lucid():
     # Add required CORS headers to the actual response
     final_response.headers['Access-Control-Allow-Origin'] = origin_to_send
     final_response.headers['Vary'] = 'Origin' # Important for caching proxies
-    final_response.headers['Access-Control-Allow-Credentials'] = allow_credentials
+
+    # UPDATED: Only add Access-Control-Allow-Credentials header if it should be 'true'
+    if allow_credentials_post: # This boolean reflects the decision made earlier
+        final_response.headers['Access-Control-Allow-Credentials'] = 'true'
+        print("[DEBUG POST /lucid] Adding Access-Control-Allow-Credentials: true to final response") # Vercel Log
+    else:
+        print("[DEBUG POST /lucid] Not adding Access-Control-Allow-Credentials header to final response") # Vercel Log
+
+
     final_response.headers['Content-Type'] = 'application/json' # Ensure correct content type
 
     print(f"[INFO /lucid] Responding with status code: {status_code}") # Vercel Log
@@ -357,7 +389,7 @@ if __name__ == '__main__':
     print("[INFO] Starting Flask development server...")
 
     # Optional: Set environment variables locally for testing
-    # os.environ['openai_api_key'] = 'YOUR_LOCAL_TEST_KEY_HERE' # Replace with your key for local tests
+    # os.environ['OPENAI_API_KEY'] = 'YOUR_LOCAL_TEST_KEY_HERE' # Use uppercase for testing
     # os.environ['ALLOWED_ORIGINS'] = '*' # Example: Allow all for local testing
     # os.environ['VERCEL_URL'] = 'localhost:8080' # Example for testing the root page
 

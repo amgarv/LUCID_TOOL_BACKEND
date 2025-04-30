@@ -7,7 +7,7 @@ This repository contains the Python Flask backend server required for the LUCID 
 Click the button below to deploy your own instance of this backend service to Vercel. This provides the necessary API endpoint for your Qualtrics tool.
 
 [![Deploy with Vercel](https://vercel.com/button)](
-https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Famgarv%2FLUCID_TOOL_BACKEND&project-name=lucid-tool-backend&repository-name=my-LUCID-backend-code&env=OPENAI_API_KEY,ALLOWED_ORIGINS&envDescription=OpenAI%20secret%20key%20and%20comma-separated%20CORS%20allowlist&envLink=https%3A%2F%2Fplatform.openai.com%2Faccount%2Fapi-keys)
+https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Famgarv%2FLUCID_TOOL_BACKEND&project-name=lucid-tool-backend&repository-name=my-lucid-backend-code&env=OPENAI_API_KEY,ALLOWED_ORIGINS&envDescription=OpenAI%20secret%20key%20and%20comma-separated%20CORS%20allowlist&envLink=https%3A%2F%2Fplatform.openai.com%2Faccount%2Fapi-keys)
 
 ## Deployment Steps (Using the Deploy Button)
 
