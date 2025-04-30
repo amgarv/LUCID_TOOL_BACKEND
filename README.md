@@ -6,7 +6,7 @@ This repository contains the Python Flask backend server required for the LUCID 
 
 Click the button below to deploy your own instance of this backend service to Vercel. This provides the necessary API endpoint for your Qualtrics tool.
 
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Famgarv%2FLUCID_TOOL_BACKEND&project-name=lucid-tool-backend&repository-name=my-lucid-backend-code&env=OPENAI_API_KEY,ALLOWED_ORIGINS&envDescription=Requires%20inputting%20your%20OpenAI%20API%20key%20(see%20link%20below).%20For%20ALLOWED_ORIGINS%2C%20input%20the%20single%20character%20*%20for%20ease%20of%20use%2C%20or%20for%20greater%20security%20input%20your%20university's%20Qualtrics%20origin%20domain%20(e.g.%20https%3A%2F%2Fyouruniversity.qualtrics.com).&envLink=https%3A%2F%2Fplatform.openai.com%2Faccount%2Fapi-keys)
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Famgarv%2FLUCID_TOOL_BACKEND&project-name=lucid-tool-backend&repository-name=my-lucid-backend-code&env=OPENAI_API_KEY,ALLOWED_ORIGINS&envDescription=INSTRUCTIONS%3A%20For%20OPENAI_API_KEY%20input%20your%20OpenAI%20API%20key%20(available%20at%20%22Learn%20more%22%20link%20below).%20For%20ALLOWED_ORIGINS%2C%20input%20the%20single%20character%20*%20for%20ease%20of%20use%2C%20or%20for%20greater%20security%20input%20your%20university's%20Qualtrics%20origin%20domain%20(e.g.%20https%3A%2F%2Fyouruniversity.qualtrics.com).&envLink=https%3A%2F%2Fplatform.openai.com%2Faccount%2Fapi-keys)
 
 ## Deployment Steps (Using the Deploy Button)
 
