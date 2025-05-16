@@ -47,3 +47,7 @@ Click the button below to deploy your own instance of this backend service to Ve
 Your Qualtrics tool should now be able to communicate with your deployed LUCID backend.
 
 ---
+
+The code contents of this git repository are available for non-commercial use under Creative Commons BY-NC-SA (https://creativecommons.org/licenses/by-nc-sa/4.0/legalcode.en).
+
+---
