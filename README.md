@@ -1,24 +1,48 @@
-# LUCID Toolkit - GPT Qualtrics Backend
+# LUCID Toolkit — GPT + Qualtrics Backend
 
-This repository contains the Python Flask backend server required for the LUCID GPT Qualtrics chat interface toolkit. It acts as a proxy to the OpenAI API, enabling researchers to conduct human-AI interaction studies within Qualtrics.
+Welcome to the backend server powering the [LUCID Toolkit](http://lucidresearch.io) — a research infrastructure for running controlled GPT-based chatbot interactions directly inside **Qualtrics** surveys.
 
-[Download the LUCID User Guide (.docx)](https://github.com/amgarv/LUCID_TOOL_BACKEND/raw/main/LUCIDToolkitUserGuide.docx)
+This code (Flask backend) serves as a **secure proxy to the OpenAI API** — allowing each researcher or research team to create their own isolated, privacy-preserving implementation of the LUCID system.
 
-Academic Citation for the LUCID Toolkit:
+---
 
-Garvey, Aaron M. and Simon J. Blanchard, (2025) “Generative AI as a Research Confederate: The “LUCID” Methodological Framework and Toolkit for Controlled Human-AI Interactions Research in Marketing,” Working Manuscript.
+## ⚠️ Why Is a Separate Server Needed?
 
-## Quick Deploy to Vercel
+It is **not safe to embed an OpenAI API key directly** in Qualtrics — whether in JavaScript, Survey Flow, or an HTML element. Survey participants (or anyone inspecting the page) could easily view and copy your key.
 
-Click the button below to deploy your own instance of this backend service to Vercel. This provides the necessary API endpoint for your Qualtrics tool.
+The LUCID backend solves this by securely handling GPT requests *on your own private server*. The API key is never visible to participants. And the best part? 
+1. You only need to do this **once**
+2. The service we recommend, Vercel, has a **free tier** which is sufficient for most researchers' use. 
+
+---
+
+## What You’ll Need Before Getting Started
+
+You only need two accounts to get started:
+
+1. **An OpenAI API Key**  
+   - Sign up at [platform.openai.com](https://platform.openai.com/signup)  
+   - Then follow [this beginner's guide](https://questionableresearch.ai/2025/02/27/how-to-sign-up-for-openai-and-get-an-api-key-for-beginners/) if you're new to OpenAI's API 
+   - You'll paste this key into your backend deployment (not into Qualtrics!)
+
+2. **A GitHub Account**  
+   - Sign up at [github.com/join](https://github.com/join)  
+   - Used to deploy the backend via Vercel in just a few clicks.
+  
+3. (Optional) **A printable version of our userguide containing all steps**
+📄 [Guide (.docx)](https://github.com/amgarv/LUCID_TOOL_BACKEND/raw/main/LUCIDToolkitUserGuide.docx) 
+
+If you have all this, you're ready to get started. 
+
+## Step 1: Deploy YOUR LUCID Backend
+
+To get started, click the following button:
 
 [![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Famgarv%2FLUCID_TOOL_BACKEND&project-name=lucid-tool-backend&repository-name=my-lucid-backend-code&env=OPENAI_API_KEY&envDescription=INSTRUCTIONS%3A%20For%20OPENAI_API_KEY%20input%20your%20OpenAI%20API%20key%20(available%20at%20%22Learn%20more%22%20link%20below).&envLink=https%3A%2F%2Fplatform.openai.com%2Faccount%2Fapi-keys)
 
-<a href="https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Famgarv%2FLUCID_TOOL_BACKEND&project-name=lucid-tool-backend&repository-name=my-lucid-backend-code&env=OPENAI_API_KEY&envDescription=INSTRUCTIONS%3A%20For%20OPENAI_API_KEY%20input%20your%20OpenAI%20API%20key%20(available%20at%20%22Learn%20more%22%20link%20below).&envLink=https%3A%2F%2Fplatform.openai.com%2Faccount%2Fapi-keys" target="_blank" rel="noopener noreferrer" style="display: inline-block; padding: 15px 25px; background-color: #0070f3; color: white; text-align: center; text-decoration: none; font-size: 18px; font-weight: bold; border-radius: 8px; border: none; cursor: pointer; box-shadow: 0 2px 4px rgba(0,0,0,0.2);">
-  CLICK HERE TO SET UP YOUR LUCID BACKEND ON VERCEL
-</a>
+You'll be taken to Vercel.
 
-## Deployment Steps (Using the Deploy Button)
+## 1.1 Deployment Steps (Using the Deploy Button)
 
 1.  **Click the "Deploy with Vercel" button** above.
 2.  **Connect Git Provider:** When prompted, connect your GitHub account.
@@ -33,21 +57,24 @@ Click the button below to deploy your own instance of this backend service to Ve
 6.  **Deploy:** Click the "Deploy" button in Vercel.
 7.  **Wait:** Vercel will build and deploy your backend. This usually takes 1-2 minutes.
 
-## Getting Your Backend URL for Qualtrics
+## 1.2 Getting Your Backend URL for Qualtrics
 
-1.  **Visit Your Deployment:** Once Vercel shows the deployment is complete ("Congratulations!"), click the image displayed that says in blue text "LUCID Backend Succesfully Deployed!".
-2.  **Copy the Qualtrics URL:** The resulting page you visit should display "LUCID Backend Successfully Deployed!". It will clearly show the **exact URL needed for Qualtrics**. Click the "Copy Backend URL" button. Keep this URL handy for the Qualtrics setup.
+**Visit Your Deployment:** Once Vercel shows the deployment is complete ("Congratulations!"), click the image displayed that says in blue text "LUCID Backend Succesfully Deployed!".
 
-## Qualtrics Setup
+## 1.3 Save your Backend URL
 
-1.  Take the full URL you copied from your deployment's landing page (e.g., `https://your-project-name.vercel.app/lucid`).
-2.  In your Qualtrics survey, go to the **Survey Flow**.
-3.  Set the value of the Embedded Data field named `LUCIDBackendURL` exactly to the URL you copied.
-
-Your Qualtrics tool should now be able to communicate with your deployed LUCID backend.
+**Copy the URL:** The resulting page you visit should display "LUCID Backend Successfully Deployed!". It will clearly show the **exact URL needed for Qualtrics**. Click the "Copy Backend URL" button (e.g., `https://your-project-name.vercel.app/lucid`). Keep this address handy for the Qualtrics setup.
 
 ---
+
+# 🎉 You are now ready for Step 2! 🥳
+
+Go to [our template page](http://lucidresearch.io/LUCIDtemplates.html) to get your .QSF.
+
+---
+
+## Reference
+
+Garvey, Aaron M. and Simon J. Blanchard, (2025) “Generative AI as a Research Confederate: The LUCID Methodological Framework and Toolkit for Human-AI Interactions Research,” Working Manuscript. [paper@ssrn](https://papers.ssrn.com/sol3/papers.cfm?abstract_id=5256150) 
 
 The code contents of this git repository are available for non-commercial use under Creative Commons BY-NC-SA (https://creativecommons.org/licenses/by-nc-sa/4.0/legalcode.en).
-
----
