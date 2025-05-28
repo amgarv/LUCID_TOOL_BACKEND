@@ -1,4 +1,4 @@
-# LUCID Toolkit — GPT + Qualtrics Backend
+# LUCID Toolkit — GPT + Qualtrics Backend — Quick Start Guide
 
 Welcome to the backend server powering the [LUCID Toolkit](http://lucidresearch.io) — a research infrastructure for running controlled GPT-based chatbot interactions directly inside **Qualtrics** surveys.
 
