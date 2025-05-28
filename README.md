@@ -29,7 +29,7 @@ You only need two accounts to get started:
    - Sign up at [github.com/join](https://github.com/join)  
    - Used to deploy the backend via Vercel in just a few clicks.
   
-3. (Optional) **A printable version of our userguide containing all steps**
+3. (Optional) **A printable version of our detailed setup guide containing all steps with screenshots**
 📄 [Guide (.docx)](https://github.com/amgarv/LUCID_TOOL_BACKEND/raw/main/LUCIDToolkitUserGuide.docx) 
 
 If you have all this, you're ready to get started. 
