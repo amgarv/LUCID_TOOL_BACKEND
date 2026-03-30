@@ -69,12 +69,17 @@ You'll be taken to Vercel.
 
 # 🎉 You are now ready for Step 2! 🥳
 
-Go to [our template page](http://lucidresearch.io/LUCIDtemplates.html) to get your .QSF.
+Download your .QSF file from this repository:
+
+-Single condition design (e.g., for conducting an interview using the same chatbot for all participants): LUCID_Qualtrics_Template_1_-One_Group_Design.qsf
+-2-Group between subjects design (e.g., for conducting an experiment that manipulates chatbot behavior): LUCID_Qualtrics_Template_2_-Two_Group_Between_Subjects_Experiment.qsf
 
 ---
 
-## Reference
+## References
 
-Garvey, Aaron M. and Simon J. Blanchard, (2025) “Generative AI as a Research Confederate: The LUCID Methodological Framework and Toolkit for Human-AI Interactions Research,” Working Manuscript. [paper@ssrn](https://papers.ssrn.com/sol3/papers.cfm?abstract_id=5256150) 
+Garvey, Aaron M. and Simon J. Blanchard, (2025) “Generative AI as a Research Confederate: The LUCID Methodological Framework and Toolkit for Human-AI Interactions Research,” MSI Working Paper. [paper@ssrn](https://papers.ssrn.com/sol3/papers.cfm?abstract_id=5256150) 
+
+Blanchard, S. J., Duani, N., Garvey, A. M., Netzer, O., & Tae Oh, T. (2025). New Tools, New Rules: A Practical Guide to Effective and Responsible Generative AI Use for Surveys and Experiments in Research. Journal of Marketing, 89(6), 119-139. [paper@Journal of Marketing](https://doi.org/10.1177/00222429251349882)
 
 The code contents of this git repository are available for non-commercial use under Creative Commons BY-NC-SA (https://creativecommons.org/licenses/by-nc-sa/4.0/legalcode.en).
