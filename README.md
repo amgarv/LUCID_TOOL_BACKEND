@@ -73,7 +73,7 @@ Download your .QSF file from this repository:
 
 LUCID_Qualtrics_Template_1_-One_Group_Design.qsf - A single condition design (e.g., for conducting an interview using the same chatbot for all participants)
 
-LUCID_Qualtrics_Template_2_-Two_Group_Between_Subjects_Experiment.qsf - A 2-Group between subjects design (e.g., for conducting an experiment that manipulates chatbot behavior): 
+LUCID_Qualtrics_Template_2_-Two_Group_Between_Subjects_Experiment.qsf - A 2-Group between subjects design (e.g., for conducting an experiment that manipulates chatbot behavior) 
 
 ---
 
